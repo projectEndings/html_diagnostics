@@ -1,0 +1,4 @@
+/Users/joeytakeda/git/projectEndings/html_diagnostics/test/test/test.txt
+/Users/joeytakeda/git/projectEndings/html_diagnostics/test/test1.html
+/Users/joeytakeda/git/projectEndings/html_diagnostics/test/test2.xhtml
+/Users/joeytakeda/git/projectEndings/html_diagnostics/test/test3.htm

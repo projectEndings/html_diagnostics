@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>Test 1</title>
+    </head>
+    <body>
+        <p>This is a test document. This reference <a href="#blah">shouldn't exist</a>. This reference <a href="#blorp">should</a>.</p>
+        <p id="blorp">This document doesn't exist <a href="test/nope.pdf">nope.</a> But this one should <a href="test/test.txt">test</a>.</p>
+        <p>This document <a href="test2.html">exists</a>.This document <a href="test2.xml">does not</a>. This fragment does <a href="test2.html#blorp">exist</a>; this one <a href="test2.html#blah">doesn't</a>.</p>
+    </body>
+</html>
