@@ -36,13 +36,19 @@ ant -lib utilities -DprojectDir=../path/to/your/directory
 
 ### Example
 
-For an example of how the diagnostics work 
+For an example of how the diagnostics work, see the [examples directory](/example) and test running the diagnostics by running this command:
+
+```
+ant -lib utilities -DprojectDir=example/test
+```
+
+You can see an older output in that directory as well.
     
 ## Assumptions / Known Issues
 
 * All of your files are contained within one project directory
-* @xml:base is *not* handled
-* Only documents in the XHTML namespace is handled (http://www.w3.org/1999/xhtml)
+* `@xml:base` is *not* handled
+* Only documents in the XHTML namespace are handled (http://www.w3.org/1999/xhtml)
 * Java directory chooser is sometimes hidden behind oXygen (see issue #2)
 
 ### Why are only local files checked?
