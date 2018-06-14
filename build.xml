@@ -16,7 +16,7 @@
     <!--NOTE that this is a pattern, which by
         default is
         *htm* = xhtml, htm, html-->
-    <property name="suffix" value="htm"/>
+    <property name="suffix" value="*htm*"/>
     
     
     <tstamp>
