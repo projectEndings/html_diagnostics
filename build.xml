@@ -17,7 +17,11 @@
         default is
         *htm* = xhtml, htm, html-->
     <property name="suffix" value="*htm*"/>
+    <property name="excludePattern" value=""/>
     
+    <!--The exceptions document; you can make your own or use the provided one
+        whichever works-->
+    <property name="exceptionsDoc" value="${basedir}/utilities/EXCEPTIONS"/>
     
     <tstamp>
         <format property="date" pattern="yyyy-MM-dd" locale="en"/>
@@ -30,6 +34,12 @@
     
     <condition property="isUnix">
         <os family="unix" />
+    </condition>
+    
+    <condition property="useExclude">
+        <not>
+            <equals arg1="${excludePattern}" arg2=""/>
+        </not>
     </condition>
     
     <condition property="promptForFile">
@@ -131,7 +141,6 @@
                 <path>
                     <fileset dir="${projectDir}">
                         <include name="**/**"/>
-                        <exclude name="**/diagnostics**"/>
                     </fileset>
                 </path>
             </pathconvert>
@@ -161,16 +170,12 @@
             <factory name="net.sf.saxon.TransformerFactoryImpl"/>
             <param name="projectDirectory" expression="${projectDirFull}"/>
             <param name="outputDir" expression="${outputDir}"/>
-            <param name="currDate" expression="${date}"/>
             <param name="line.separator" expression="${line.separator}"/>
-            <param name="docsToProcess" expression="${outputDir}/transformedFiles.txt"/>
-            <param name="uniques" expression="${outputDir}/unique.txt"/>
             <param name="suffix" expression="${suffix}"/>
-            <param name="fileList" expression="${outputDir}/systemFiles.txt"/>
             <fileset dir="${projectDirFull}">
                 <include name="**.${suffix}"/>
                 <include name="**/**.${suffix}"/>
-                <exclude name="**/google**.html"/>
+                <exclude if="${useExclude}" name="${excludePattern}"/>
             </fileset>
         </xslt>
     </target>
@@ -183,12 +188,8 @@
             <arg value="-o:${outputDir}/system_files.xml"/>
             <arg value="projectDirectory=${projectDirFull}"/>
             <arg value="outputDir=${outputDir}"/>
-            <arg value="currDate=${date}"/>
             <arg value="line.separator=${line.separator}"/>
-            <arg value="docsToProcess=${outputDir}/transformedFiles.txt"/>
-            <arg value="uniques=${outputDir}/unique.txt"/>
             <arg value="suffix=${suffix}"/>
-            <arg value="fileList=${outputDir}/systemFiles.txt"/>
             <arg value="--suppressXsltNamespaceCheck:on"/>
         </java>
     </target>
@@ -208,12 +209,9 @@
             <arg value="-o:${outputDir}/errors.xml"/>
             <arg value="projectDirectory=${projectDirFull}"/>
             <arg value="outputDir=${outputDir}"/>
-            <arg value="currDate=${date}"/>
             <arg value="line.separator=${line.separator}"/>
-            <arg value="docsToProcess=${outputDir}/transformedFiles.txt"/>
-            <arg value="uniques=${outputDir}/unique.txt"/>
             <arg value="suffix=${suffix}"/>
-            <arg value="fileList=${outputDir}/systemFiles.txt"/>
+            <arg value="exceptionsDoc=${exceptionsDoc}"/>
             <arg value="--suppressXsltNamespaceCheck:on"/>
         </java>
     </target>
@@ -226,12 +224,9 @@
             <arg value="-o:${outputDir}/html_diagnostics_report.html"/>
             <arg value="projectDirectory=${projectDirFull}"/>
             <arg value="outputDir=${outputDir}"/>
-            <arg value="currDate=${date}"/>
             <arg value="line.separator=${line.separator}"/>
-            <arg value="docsToProcess=${outputDir}/transformedFiles.txt"/>
-            <arg value="uniques=${outputDir}/unique.txt"/>
             <arg value="suffix=${suffix}"/>
-            <arg value="fileList=${outputDir}/systemFiles.txt"/>
+            <!--Special param for this XSLT-->
             <arg value="byDoc=${byDoc}"/>
             <arg value="--suppressXsltNamespaceCheck:on"/>
         </java>

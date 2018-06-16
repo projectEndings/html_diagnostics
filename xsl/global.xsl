@@ -18,6 +18,7 @@
         <xd:param name="suffix">The suffix pattern (by default it is *htm* as passed by ANT)</xd:param>
         <xd:param name="line.separator">The system's line separator</xd:param>
         <xd:param name="outputDir">The output directory where the results and temporary products go</xd:param>
+        <xd:param name="exceptionsDoc">The document that lists exceptions</xd:param>
     </xd:doc>
    
    <!--******** PARAMETERS *******-->
@@ -26,6 +27,7 @@
     <xsl:param name="suffix"/>
     <xsl:param name="line.separator"/>
     <xsl:param name="outputDir"/>
+    <xsl:param name="exceptionsDoc" select="()"/>
     
     <!--******** VARIABLES *******-->
     
@@ -104,6 +106,21 @@
     </xd:doc>
     <xsl:variable name="internalErrorsDoc" select="document($internalErrorsPath)"/>
     
+    <xd:doc scope="component">
+        <xd:ref type="variable" name="exceptions"/>
+        <xd:desc>A sequence of strings that comprise the exceptions for this project.</xd:desc>
+    </xd:doc>
+    <xsl:variable name="exceptions" as="xs:string*">
+        <xsl:if test="unparsed-text-available($exceptionsDoc) and not(empty($exceptionsDoc))">
+            <xsl:for-each select="hcmc:lineTokenize(unparsed-text($exceptionsDoc))[not(matches(.,'(^\s+$)|(^#+)'))]">
+                <xsl:variable name="thisLine" select="normalize-space(.)"/>
+                <xsl:if test="not($thisLine='')">
+                    <xsl:value-of select="normalize-space(resolve-uri(concat($projectDirectory,'/',$thisLine)))"/>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:if>
+    </xsl:variable>
+    
 
    
     
@@ -127,8 +144,7 @@
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
-    
-   
+
     <xd:doc>
         <xd:desc>A simple utility function to tokenize a text file based off of lines.</xd:desc>
         <xd:param name="str">A string, usually produced by unparsed-text().</xd:param>
@@ -138,8 +154,6 @@
         <xsl:sequence select="tokenize($str,$line.separator)"/>
     </xsl:function>
 
-    
-   
     <xd:doc>
         <xd:desc>Utility function to get the URI before a hash.</xd:desc>
         <xd:param name="uri">A full URI.</xd:param>
@@ -172,8 +186,6 @@
         <xsl:value-of select="substring-before($fullUri,concat('.',$uriExt))"/>
     </xsl:function>
     
-    <!---->
-    
     <xd:doc>
         <xd:desc>This function compares two sequences and returns all of $seq1
             that is not in $seq2. Thanks to Martin Holmes for the suggestion and pointer
@@ -187,6 +199,8 @@
         <xsl:param name="seq2"/>
         <xsl:sequence select="$seq1[not(.=$seq2)]"/>
     </xsl:function>
+    
+    
     
     
 </xsl:stylesheet>

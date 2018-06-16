@@ -8,29 +8,44 @@
     xmlns:hcmc="http://hcmc.uvic.ca/ns" 
     version="2.0">
     <xsl:include href="global.xsl"/>
+
     <xsl:output method="xml"/>
+    
     
     <xsl:variable name="references" select="$refDocs/descendant::li"/>
     <xsl:variable name="processedDocs" select="$refDocs//@data-doc"/>
     <xsl:variable name="distinctGroupsCount" select="count(distinct-values(for $n in $references return hcmc:getBaseUri($n)))"/>
+  
     
     <xsl:key name="ref-to-doc" match="ul" use="@data-doc"/>
     <xsl:key name="ref-to-system" match="li" use="."/>
     <xsl:key name="hash-to-id" match="li" use="."/>
+    <xsl:key name="ref-to-exclusion" match="li" use="."/>
     
     
     <xsl:template match="/">
         <div>
             <h3>Reference Errors</h3>
+            <xsl:if test="not(empty($exceptions))">
+                <xsl:message>Found <xsl:value-of select="count($exceptions)"/> exceptions.</xsl:message>
+                <xsl:message>
+                    <xsl:copy-of select="$exceptions"/>
+                </xsl:message>
+            </xsl:if>
             <xsl:for-each-group select="$references" group-by="hcmc:getBaseUri(.)">
                 <xsl:variable name="thisBaseUri" select="current-grouping-key()"/>
                 <xsl:variable name="currRefs" select="current-group()"/>
                 <!--Booleans-->
                 <xsl:variable name="alreadyProcessed" select="not(empty($refDocs/key('ref-to-doc',$thisBaseUri)))" as="xs:boolean"/>
                 <xsl:variable name="exists" select="not(empty($systemFilesDoc/key('ref-to-system',$thisBaseUri)))" as="xs:boolean"/>
-                <xsl:message>Checking references to this <xsl:value-of select="$thisBaseUri"/> (<xsl:value-of select="position()"/>/<xsl:value-of select="$distinctGroupsCount"/>)</xsl:message>
+                <xsl:variable name="isException" select="$exceptions=$thisBaseUri" as="xs:boolean"/>
+                <xsl:message>Checking reference <xsl:value-of select="position()"/>/<xsl:value-of select="$distinctGroupsCount"/></xsl:message>
                 <xsl:choose>
                     <!--We expidite this slightly by seeing if we've already processed the document (i.e. there's a @data-doc)-->
+                    <!--Then just let the whole thing pass-->
+                    <xsl:when test="$isException">
+                        <xsl:message>Skipping excluded reference: <xsl:value-of select="$thisBaseUri"/></xsl:message>
+                    </xsl:when>
                     <xsl:when test="$alreadyProcessed">
                         <!--If that's true, then go ahead and check the internal refs-->
                         <xsl:copy-of select="hcmc:checkInternalRefs($thisBaseUri, $currRefs)"/>

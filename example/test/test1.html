@@ -2,10 +2,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <title>Test 1</title>
+        <link rel="stylesheet" href="badCss.css"/>
     </head>
     <body>
         <p>This is a test document. This reference <a href="#blah">shouldn't exist</a>. This reference <a href="#blorp">should</a>.</p>
         <p id="blorp">This document doesn't exist <a href="test/nope.pdf">nope.</a> But this one should <a href="test/test.txt">test</a>.</p>
         <p>This document <a href="test2.html">exists</a>.This document <a href="test2.xml">does not</a>. This fragment does <a href="test2.html#blorp">exist</a>; this one <a href="test2.html#blah">doesn't</a>.</p>
+        <p>Now I'm making a link to <a href="exceptional.html">exceptional content</a>. But this link to <a href="test/exceptional.txt">doesn't exist</a> so it should still be flagged.</p>
+        
+        <p>Now I'll link to a picture that doens't exist <img src="myImage.png"/>; I'll also create make a null call on a <a href="#">link</a>. I'll link to an external image, which does exist: <img src="https://www.gstatic.com/webp/gallery3/1.png"/>. But this exists: <img src="flower.png"/>, but this doesn't <img src="test/flower.png"/></p>
+
     </body>
 </html>

@@ -14,20 +14,17 @@
     
     <!--A parameter-->
     <xsl:param name="byDoc" select="'true'"/>
-    
-    <xsl:variable name="xmlDocs" select="collection(concat($outputTxtDir,'?select=*_refs.xml'))"/>
-    <xsl:variable name="errorXmlDoc" select="document(concat($outputDir,'/','errors.xml'))"/>
-    <xsl:variable name="internalErrorXmlDoc" select="document(concat($outputDir,'/','internalErrors.xml'))"/>
-    <xsl:variable name="systemFilesXml" select="document(concat($outputDir,'/system_files.xml'))//ul"/>
-
-    
-    <xsl:variable name="externalErrorDocs" select="distinct-values($errorXmlDoc//ul/li/ul/li/text())"/>
-    <xsl:variable name="internalErrorDocs" select="distinct-values($internalErrorXmlDoc//ul[not(ancestor::ul)]/li/text())"/>
+     
+    <xsl:variable name="externalErrorDocs" select="distinct-values($errorsDoc//ul/li/ul/li/text())"/>
+    <xsl:variable name="internalErrorDocs" select="distinct-values($internalErrorsDoc//ul[not(ancestor::ul)]/li/text())"/>
     
     <xsl:variable name="internalOnly" select="hcmc:compareSeq($internalErrorDocs,$externalErrorDocs)"/>
     
     <xsl:key name="doc-to-externalError" match="div/ul/li" use="ul/li/normalize-space(text())"/>
     <xsl:key name="doc-to-internalError" match="div/ul/li" use="normalize-space(text())"/>
+    <xsl:variable name="externalErrorCount" select="count($errorsDoc//li)"/>
+    <xsl:variable name="internalErrorCount" select="count($internalErrorsDoc//li)"/>
+    <xsl:variable name="totalErrorCount" select="$internalErrorCount + $externalErrorCount"/>
     
     
     
@@ -47,11 +44,11 @@
                             <tbody>
                                 <tr>
                                     <td>Total documents analyzed:</td>
-                                    <td><xsl:value-of select="count($xmlDocs)"/></td>
+                                    <td><xsl:value-of select="count($refDocs)"/></td>
                                 </tr>
                                 <tr>
                                     <td>Documents in project:</td>
-                                    <td><xsl:value-of select="count($systemFilesXml//li)"/></td>
+                                    <td><xsl:value-of select="count($systemFilesDoc//li)"/></td>
                                 </tr>
                                 <tr>
                                     <td>Total external references:</td>
@@ -71,65 +68,80 @@
                                     <td><xsl:value-of select="count($internalRefsDocs//li)"/></td>
                                 </tr>
                                 <tr>
-                                    <td>Total unique external errors found:</td>
-                                    <td><xsl:value-of select="count($errorXmlDoc//div/ul/li)"/></td>
+                                    <td>Total errors</td>
+                                    <td><xsl:value-of select="$totalErrorCount"/></td>
                                 </tr>
                                 <tr>
-                                    <td>Total internal errors found:</td>
-                                    <td><xsl:value-of select="count($internalErrorXmlDoc//div/ul/li/ul/li)"/></td>
+                                    <td>Total external errors</td>
+                                    <td><xsl:value-of select="$externalErrorCount"/></td>
                                 </tr>
+                                <tr>
+                                    <td>Total internal errors</td>
+                                    <td><xsl:value-of select="$internalErrorCount"/></td>
+                                </tr>
+                                
                             </tbody>
                         </table>
                     </div>
                     <xsl:choose>
-                        <xsl:when test="$byDoc='true'">
-                            <xsl:for-each-group select="$errorXmlDoc//div/ul/li" group-by="ul/li">
-                                <xsl:variable name="thisDocName" select="current-grouping-key()"/>
-                                <xsl:variable name="currGroup" select="current-group()"/>
-                                <xsl:variable name="internalErrors" select="$internalErrorXmlDoc//key('doc-to-internalError',$thisDocName)"/>
-                                <xsl:message>Processing <xsl:value-of select="$thisDocName"/>...</xsl:message> 
-                                <div>
-                                    <h3><xsl:value-of select="hcmc:getRelativeUri(current-grouping-key())"/></h3>
-                                    <div>
-                                        <h4>External Errors</h4>
-                                        <ul>
-                                            <xsl:for-each select="$currGroup">
-                                                <li><xsl:value-of select="hcmc:getRelativeUri(text())"/></li>
-                                            </xsl:for-each>
-                                        </ul>
-                                    </div>
-                                    <xsl:if test="not(empty($internalErrors))">
+                        <xsl:when test="$totalErrorCount gt 0">
+                            <xsl:choose>
+                                <xsl:when test="$byDoc='true'">
+                                    <xsl:for-each-group select="$errorsDoc//div/ul/li" group-by="ul/li">
+                                        <xsl:variable name="thisDocName" select="current-grouping-key()"/>
+                                        <xsl:variable name="currGroup" select="current-group()"/>
+                                        <xsl:variable name="internalErrors" select="$internalErrorsDoc//key('doc-to-internalError',$thisDocName)"/>
+                                        <xsl:message>Processing <xsl:value-of select="$thisDocName"/>...</xsl:message> 
                                         <div>
-                                            <h4>Internal Errors</h4>
-                                            <ul>
-                                                <xsl:for-each select="$internalErrors/ul/li">
-                                                    <li><xsl:value-of select="text()"/></li>
-                                                </xsl:for-each>
-                                            </ul>
-                                            
+                                            <h3><xsl:value-of select="hcmc:getRelativeUri(current-grouping-key())"/></h3>
+                                            <div>
+                                                <h4>External Errors</h4>
+                                                <ul>
+                                                    <xsl:for-each select="$currGroup">
+                                                        <li><xsl:value-of select="hcmc:getRelativeUri(text())"/></li>
+                                                    </xsl:for-each>
+                                                </ul>
+                                            </div>
+                                            <xsl:if test="not(empty($internalErrors))">
+                                                <div>
+                                                    <h4>Internal Errors</h4>
+                                                    <ul>
+                                                        <xsl:for-each select="$internalErrors/ul/li">
+                                                            <li><xsl:value-of select="text()"/></li>
+                                                        </xsl:for-each>
+                                                    </ul>
+                                                    
+                                                </div>
+                                            </xsl:if>
                                         </div>
-                                    </xsl:if>
-                                </div>
-                            </xsl:for-each-group>
-                            <!--Now we need to get all the documents that are not in the internal, but not the external-->
-                            <xsl:for-each select="$internalOnly">
-                                <xsl:variable name="thisInternalDoc" select="."/>
-                                <div>
-                                    <h3><xsl:value-of select="hcmc:getRelativeUri($thisInternalDoc)"/></h3>
+                                    </xsl:for-each-group>
+                                    <!--Now we need to get all the documents that are not in the internal, but not the external-->
+                                    <xsl:for-each select="$internalOnly">
+                                        <xsl:variable name="thisInternalDoc" select="."/>
+                                        <div>
+                                            <h3><xsl:value-of select="hcmc:getRelativeUri($thisInternalDoc)"/></h3>
+                                            <div>
+                                                <h4>Internal Errors</h4>
+                                                <ul>
+                                                    <xsl:for-each select="$internalErrorsDoc//key('doc-to-internalError',$thisInternalDoc)/ul/li">
+                                                        <li><xsl:value-of select="text()"/></li>
+                                                    </xsl:for-each>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </xsl:for-each>
+                                </xsl:when>
+                                <xsl:otherwise>
                                     <div>
-                                        <h4>Internal Errors</h4>
-                                        <ul>
-                                            <xsl:for-each select="$internalErrorXmlDoc//key('doc-to-internalError',$thisInternalDoc)/ul/li">
-                                                <li><xsl:value-of select="text()"/></li>
-                                            </xsl:for-each>
-                                        </ul>
+                                        <xsl:apply-templates select="$errorsDoc | $internalErrorsDoc" mode="output"/>
                                     </div>
-                                </div>
-                            </xsl:for-each>
+                                </xsl:otherwise>
+                            </xsl:choose>
                         </xsl:when>
                         <xsl:otherwise>
+                            <xsl:message>No errors found!</xsl:message>
                             <div>
-                                <xsl:apply-templates select="$errorXmlDoc | $internalErrorXmlDoc" mode="output"/>
+                                <p>None found!</p>
                             </div>
                         </xsl:otherwise>
                     </xsl:choose>
@@ -140,6 +152,7 @@
     
     
     
+    <!--Templates-->
     <xsl:template match="ul/text() | li/text()" mode="output">
         <xsl:value-of select="hcmc:getRelativeUri(.)"/>
     </xsl:template>
