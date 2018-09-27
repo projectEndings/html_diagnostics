@@ -5,6 +5,23 @@
   
   
     <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
+    
+    <!--  This is taken with thanks from:
+      http://stackoverflow.com/questions/4696176/using-ant-how-do-i-open-a-file-in-a-browser -->
+    <scriptdef name="open" language="javascript">
+        <attribute name="file" />
+        <![CDATA[
+        var location = "file://"+attributes.get("file").toString().replaceAll("\\\\","/");
+        location = java.net.URLEncoder.encode(location, "UTF-8");
+        location = location.toString().replaceAll("%3A",":");
+        location = location.toString().replaceAll("%2F","/");
+        var uriLocation = java.net.URI.create(location);
+        var desktop = java.awt.Desktop.getDesktop();
+        desktop.browse(uriLocation);
+    ]]>
+    </scriptdef>
+    
+    
     <property name="projectDir" value=""/>
   
     <property name="echo.separator" value="*********************************************"/>
@@ -12,6 +29,8 @@
     
     <!--USER SET PROPERTIES-->
     <property name="byDoc" value="true"/>
+    
+    
     
     <!--NOTE that this is a pattern, which by
         default is
@@ -32,7 +51,7 @@
         <os family="windows"/>
     </condition>
     
-    <condition property="isUnix">
+    <condition property="isUnix" value="true">
         <os family="unix" />
     </condition>
     
@@ -95,16 +114,44 @@
     <target name="getDirectory" if="${promptForFile}">
         <script language="javascript">
             <![CDATA[
+                 //Create a new Jframe
+                var frame = new javax.swing.JFrame();
+                
+                //Set it on top
+                frame.setAlwaysOnTop( true );
+                
+                //Set location
+                frame.setLocationByPlatform( true );
+                frame.setLocationRelativeTo(null);
+                
+                //Close it when it closes
+                frame.setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE);
+                
+                //No decoration
+                frame.setUndecorated(true);
+                
+                //Display it
+                frame.pack();
+                frame.setVisible(true);
+                
+                //Create new file chooser
                 var chooser = new javax.swing.JFileChooser();
-                chooser.setDialogTitle("Choose the directory containing your TEI files");
+                
+                //Set the dialog title
+                chooser.setDialogTitle("Choose the directory containing your TEI files.");
+                
+                // Choose directories only
                 chooser.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
-                //chooser.setCurrentDirectory(new java.io.File("."));
-                if (chooser.showOpenDialog(null) == javax.swing.JFileChooser.APPROVE_OPTION) { 
+                
+                // If a directory is chosen, then set the property to that
+                if (chooser.showOpenDialog(frame) == javax.swing.JFileChooser.APPROVE_OPTION) { 
                     dir = chooser.getSelectedFile();
                 	project.setProperty('projectDir', dir);
                 }
                 else{
-                    project.setProperty('projectDir', '');
+                    // Otherwise, break
+                    javax.swing.JOptionPane.showMessageDialog(frame, "Process cancelled. Aborting.");
+                    throw "Process cancelled. Aborting!";
                 }
             ]]>
         </script>
@@ -231,6 +278,28 @@
             <arg value="--suppressXsltNamespaceCheck:on"/>
         </java>
     </target>
+    
+    
+    <!--Currently doesn't work-->
+    <target name="open" depends="open.if.windows, open.if.unix">
+        
+        <open file="${diagnosticsFile}"/>
+    </target>
+    
+    <target name="open.if.windows" if="${isWindows}" depends="setup">
+        
+        <property name="diagnosticsFile" value="${outputDir}\html_diagnostics_report.html"/>
+        <echo message="Opening ${diagnosticsFile}"/>
+    </target>
+    
+    <target name="open.if.unix" if="${isUnix}" depends="setup">
+        <property name="diagnosticsFile" value="${outputDir}/html_diagnostics_report.html"/>
+        <echo message="Opening ${diagnosticsFile}"/>
+    </target>
+    
+    
+
+    
     
     <target name="all" depends="setup, clean, createSystemXml, index, checkInternal, checkRefs, compileAllErrors"/>
    
